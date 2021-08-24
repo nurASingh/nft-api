@@ -1,0 +1,605 @@
+---
+openapi: 3.0.0
+info:
+  title: Risidio
+  description: |
+    This is a web server to connect stackchain
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: arun.enjoys@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+- url: https://virtserver.swaggerhub.com/arunsing/risidio/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://NFTstore.swagger.io/v2
+tags:
+- name: thedevlab
+  description: Everything about thedevlab
+  externalDocs:
+    description: Find out more
+    url: https://thedevlab.in
+paths:
+  /account:
+    put:
+      tags:
+      - account
+      summary: Update an existing account
+      operationId: updateAccount
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+      responses:
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: account not found
+        "405":
+          description: Validation exception
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+    post:
+      tags:
+      - account
+      summary: Add a new account to the wallet
+      operationId: addAccount
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+      responses:
+        "405":
+          description: Invalid input
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+  /account/findByStatus:
+    get:
+      tags:
+      - account
+      summary: Finds account by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findAcountByStatus
+      parameters:
+      - name: status
+        in: query
+        description: Status values that need to be considered for filter
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+            default: available
+            enum:
+            - available
+            - pending
+            - sold
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        "400":
+          description: Invalid status value
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+  /mynft:
+    get:
+      tags:
+      - nft
+      summary: Finds all the NFTs
+      description: To get all the my NFTs
+      operationId: mynft
+      parameters:
+      - name: tags
+        in: query
+        description: Tags to filter by
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NFT'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NFT'
+        "400":
+          description: Invalid tag value
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+  /mintnft/{nftname}:
+    post:
+      tags:
+      - nft
+      summary: Mint a New NFT
+      operationId: Mint a New NFT
+      parameters:
+      - name: nftname
+        in: path
+        description: ID of NFT that needs to be updated
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/mintnft_nftname_body'
+      responses:
+        "405":
+          description: Invalid input
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+  /mynft/{nftname}:
+    get:
+      tags:
+      - nft
+      summary: Find nft by name
+      description: Returns a single NFT
+      operationId: getNFTById
+      parameters:
+      - name: nftname
+        in: path
+        description: ID of NFT to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NFT'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/NFT'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: NFT not found
+      security:
+      - api_key: []
+    post:
+      tags:
+      - nft
+      summary: Updates the NFT information
+      operationId: updateNFTWithForm
+      parameters:
+      - name: nftname
+        in: path
+        description: ID of NFT that needs to be updated
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/mynft_nftname_body'
+      responses:
+        "405":
+          description: Invalid input
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+    delete:
+      tags:
+      - nft
+      summary: Deletes a NFT
+      operationId: deleteNFT
+      parameters:
+      - name: api_key
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: nftname
+        in: path
+        description: NFT id to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: NFT not found
+      security:
+      - thedevlab_auth:
+        - write:NFTs
+        - read:NFTs
+  /user:
+    post:
+      tags:
+      - user
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        default:
+          description: successful operation
+  /user/createWithArray:
+    post:
+      tags:
+      - user
+      summary: Creates list of users with given input array
+      operationId: createUsersWithArrayInput
+      requestBody:
+        $ref: '#/components/requestBodies/UserArray'
+      responses:
+        default:
+          description: successful operation
+  /user/createWithList:
+    post:
+      tags:
+      - user
+      summary: Creates list of users with given input array
+      operationId: createUsersWithListInput
+      requestBody:
+        $ref: '#/components/requestBodies/UserArray'
+      responses:
+        default:
+          description: successful operation
+  /user/login:
+    get:
+      tags:
+      - user
+      summary: Logs user into the system
+      operationId: loginUser
+      parameters:
+      - name: username
+        in: query
+        description: The user name for login
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: password
+        in: query
+        description: The password for login in clear text
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              style: simple
+              explode: false
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+        "400":
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+      - user
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        default:
+          description: successful operation
+  /user/{username}:
+    get:
+      tags:
+      - user
+      summary: Get user by user name
+      operationId: getUserByName
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be fetched. Use user1 for testing.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+    put:
+      tags:
+      - user
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+      - name: username
+        in: path
+        description: name that need to be updated
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Updated user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        "400":
+          description: Invalid user supplied
+        "404":
+          description: User not found
+    delete:
+      tags:
+      - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be deleted
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid username supplied
+        "404":
+          description: User not found
+components:
+  schemas:
+    Transaction:
+      type: object
+      properties:
+        txId:
+          type: integer
+          format: int64
+        type:
+          type: integer
+          format: int64
+        amount:
+          type: integer
+          format: int32
+        txDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: Order Status
+          enum:
+          - placed
+          - approved
+          - delivered
+        complete:
+          type: boolean
+          default: false
+      xml:
+        name: Order
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Category
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        userStatus:
+          type: integer
+          description: User Status
+          format: int32
+      xml:
+        name: User
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Tag
+    NFT:
+      required:
+      - name
+      - photoUrls
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          $ref: '#/components/schemas/Category'
+        name:
+          type: string
+          example: doggie
+        photoUrls:
+          type: array
+          xml:
+            name: photoUrl
+            wrapped: true
+          items:
+            type: string
+        tags:
+          type: array
+          xml:
+            name: tag
+            wrapped: true
+          items:
+            $ref: '#/components/schemas/Tag'
+        status:
+          type: string
+          description: NFT status in the store
+          enum:
+          - available
+          - pending
+          - sold
+      xml:
+        name: NFT
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+    mintnft_nftname_body:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated name of the NFT
+        status:
+          type: string
+          description: Updated status of the NFT
+    mynft_nftname_body:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated name of the NFT
+        status:
+          type: string
+          description: Updated status of the NFT
+  requestBodies:
+    User:
+      description: NFT object that needs to be added to the store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NFT'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/NFT'
+      required: true
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+      required: true
+  securitySchemes:
+    thedevlab_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://indentity.thedevlab.in/oauth/dialog
+          scopes:
+            write:NFTs: modify NFTs in your account
+            read:NFTs: read your NFTs
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
